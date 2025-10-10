@@ -1,8 +1,8 @@
 package org.example.hris.infrastructure.persistence.mapper;
 
-import org.example.hris.domain.security.model.Role;
-import org.example.hris.domain.security.model.User;
-import org.example.hris.domain.security.model.UserRole;
+import org.example.hris.domain.model.Role;
+import org.example.hris.domain.model.User;
+import org.example.hris.domain.model.UserRole;
 import org.example.hris.infrastructure.persistence.entity.UserRoleEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

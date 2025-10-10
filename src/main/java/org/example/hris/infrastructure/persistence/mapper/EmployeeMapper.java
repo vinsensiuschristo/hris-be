@@ -1,6 +1,6 @@
 package org.example.hris.infrastructure.persistence.mapper;
 
-import org.example.hris.domain.employee.model.Employee;
+import org.example.hris.domain.model.Employee;
 import org.example.hris.infrastructure.persistence.entity.EmployeeEntity;
 import org.example.hris.infrastructure.persistence.mapper.common.DateTimeMapper;
 import org.mapstruct.InheritInverseConfiguration;

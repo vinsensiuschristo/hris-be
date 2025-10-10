@@ -1,6 +1,6 @@
 package org.example.hris.infrastructure.persistence.mapper;
 
-import org.example.hris.domain.security.model.AuditLog;
+import org.example.hris.domain.model.AuditLog;
 import org.example.hris.infrastructure.persistence.entity.AuditLogEntity;
 import org.example.hris.infrastructure.persistence.mapper.common.DateTimeMapper;
 import org.mapstruct.InheritInverseConfiguration;

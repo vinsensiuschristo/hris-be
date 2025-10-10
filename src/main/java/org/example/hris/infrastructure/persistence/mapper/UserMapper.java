@@ -1,6 +1,6 @@
 package org.example.hris.infrastructure.persistence.mapper;
 
-import org.example.hris.domain.security.model.User;
+import org.example.hris.domain.model.User;
 import org.example.hris.infrastructure.persistence.entity.UserEntity;
 import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;

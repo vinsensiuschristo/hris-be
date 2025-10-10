@@ -1,6 +1,6 @@
 package org.example.hris.infrastructure.persistence.mapper;
 
-import org.example.hris.domain.employee.model.Department;
+import org.example.hris.domain.model.Department;
 import org.example.hris.infrastructure.persistence.entity.DepartmentEntity;
 import org.mapstruct.Mapper;
 
