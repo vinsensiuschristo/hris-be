@@ -7,15 +7,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 @Mapper(componentModel = "spring")
-public interface DateTimeMapper {
+public class DateTimeMapper {
 
-    default LocalDateTime map(Instant instant) {
-        if (instant == null) return null;
-        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+    public LocalDateTime asLocalDateTime(Instant instant) {
+        return instant != null ? LocalDateTime.ofInstant(instant, ZoneId.systemDefault()) : null;
     }
 
-    default Instant map(LocalDateTime localDateTime) {
-        if (localDateTime == null) return null;
-        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+    public Instant asInstant(LocalDateTime localDateTime) {
+        return localDateTime != null ? localDateTime.atZone(ZoneId.systemDefault()).toInstant() : null;
     }
 }

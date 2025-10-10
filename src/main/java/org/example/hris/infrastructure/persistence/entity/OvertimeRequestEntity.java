@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -32,7 +33,9 @@ public class OvertimeRequestEntity {
     private LocalTime jamMulai;
     private LocalTime jamSelesai;
     private Integer durasi;
-    private Double estimasiBiaya;
+
+    @Column(name = "estimasi_biaya", precision = 15, scale = 2)
+    private BigDecimal estimasiBiaya;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id")

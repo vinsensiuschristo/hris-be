@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.hris.domain.employee.model.Employee;
 
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -22,6 +22,10 @@ public class LeaveRequest {
     private LocalDate tglMulai;
     private LocalDate tglSelesai;
     private String alasan;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+
+    @Builder.Default
+    private Instant createdAt = Instant.now();
+
+    @Builder.Default
+    private Instant updatedAt = Instant.now();
 }

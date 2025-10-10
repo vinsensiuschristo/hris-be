@@ -2,10 +2,8 @@ package org.example.hris.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -38,10 +36,12 @@ public class EmployeeEntity {
 
     private Integer sisaCuti;
 
-    @CreationTimestamp
-    private Instant createdAt;
+    @Column(name = "created_at")
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @UpdateTimestamp
-    private Instant updatedAt;
+    @Column(name = "updated_at")
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
 }

@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -20,6 +20,9 @@ public class Employee {
     private Department departemen;
     private String email;
     private Integer sisaCuti;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    @Builder.Default
+    private Instant createdAt = Instant.now();
+
+    @Builder.Default
+    private Instant updatedAt = Instant.now();
 }
