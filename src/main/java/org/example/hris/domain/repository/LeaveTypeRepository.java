@@ -9,11 +9,11 @@ import java.util.UUID;
 public interface LeaveTypeRepository {
     LeaveType save(LeaveType leaveType);
 
-    Optional<LeaveType> findById(UUID id);
-
     List<LeaveType> findAll();
 
-    void deleteById(UUID id);
+    Optional<LeaveType> findById(UUID id);
 
     Optional<LeaveType> findByNamaJenis(String namaJenis);
+
+    void deleteById(UUID id);
 }
