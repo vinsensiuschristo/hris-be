@@ -5,6 +5,7 @@ import org.example.hris.domain.model.Attendance;
 import org.example.hris.domain.model.Employee;
 import org.example.hris.domain.repository.AttendanceRepository;
 import org.example.hris.domain.repository.EmployeeRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,11 +17,15 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
+
+    public AttendanceService(AttendanceRepository attendanceRepository, @Lazy EmployeeRepository employeeRepository) {
+        this.attendanceRepository = attendanceRepository;
+        this.employeeRepository = employeeRepository;
+    }
 
     // Default work start time (can be moved to configuration)
     private static final LocalTime JAM_KERJA_MULAI = LocalTime.of(8, 0); // 08:00

@@ -23,6 +23,9 @@ public class EmployeeEntity {
     @Column(unique = true, nullable = false)
     private String nik;
 
+    @Column(nullable = false)
+    private String nama;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "jabatan_id")
     private PositionEntity jabatan;

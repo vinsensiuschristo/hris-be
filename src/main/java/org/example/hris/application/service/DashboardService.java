@@ -1,9 +1,9 @@
 package org.example.hris.application.service;
 
-import lombok.RequiredArgsConstructor;
 import org.example.hris.application.dto.dashboard.DashboardStatsResponse;
 import org.example.hris.domain.model.*;
 import org.example.hris.domain.repository.*;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,7 +13,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class DashboardService {
 
     private final EmployeeRepository employeeRepository;
@@ -21,18 +20,25 @@ public class DashboardService {
     private final LeaveRequestRepository leaveRequestRepository;
     private final OvertimeRequestRepository overtimeRequestRepository;
 
+    public DashboardService(
+            @Lazy EmployeeRepository employeeRepository,
+            @Lazy AttendanceRepository attendanceRepository,
+            @Lazy LeaveRequestRepository leaveRequestRepository,
+            @Lazy OvertimeRequestRepository overtimeRequestRepository) {
+        this.employeeRepository = employeeRepository;
+        this.attendanceRepository = attendanceRepository;
+        this.leaveRequestRepository = leaveRequestRepository;
+        this.overtimeRequestRepository = overtimeRequestRepository;
+    }
+
     private static final String STATUS_DISETUJUI = "DISETUJUI";
     private static final String STATUS_DITOLAK = "DITOLAK";
     private static final String STATUS_MENUNGGU = "MENUNGGU_PERSETUJUAN";
 
     public DashboardStatsResponse getDashboardStats(LocalDate startDate, LocalDate endDate, UUID departmentId) {
         // Default to current month if not specified
-        if (startDate == null) {
-            startDate = LocalDate.now().withDayOfMonth(1);
-        }
-        if (endDate == null) {
-            endDate = LocalDate.now();
-        }
+        final LocalDate effectiveStartDate = startDate != null ? startDate : LocalDate.now().withDayOfMonth(1);
+        final LocalDate effectiveEndDate = endDate != null ? endDate : LocalDate.now();
 
         // Get all employees count
         List<Employee> allEmployees = employeeRepository.findAll();
@@ -41,9 +47,9 @@ public class DashboardService {
         // Get attendances in date range
         List<Attendance> attendances;
         if (departmentId != null) {
-            attendances = attendanceRepository.findByDepartmentAndDateRange(departmentId, startDate, endDate);
+            attendances = attendanceRepository.findByDepartmentAndDateRange(departmentId, effectiveStartDate, effectiveEndDate);
         } else {
-            attendances = attendanceRepository.findByDateRange(startDate, endDate);
+            attendances = attendanceRepository.findByDateRange(effectiveStartDate, effectiveEndDate);
         }
 
         // Calculate attendance summary
@@ -51,13 +57,13 @@ public class DashboardService {
 
         // Get leave requests
         List<LeaveRequest> leaveRequests = leaveRequestRepository.findAll().stream()
-                .filter(lr -> !lr.getTglMulai().isBefore(startDate) && !lr.getTglMulai().isAfter(endDate))
+                .filter(lr -> !lr.getTglMulai().isBefore(effectiveStartDate) && !lr.getTglMulai().isAfter(effectiveEndDate))
                 .toList();
         DashboardStatsResponse.LeaveSummary leaveSummary = calculateLeaveSummary(leaveRequests);
 
         // Get overtime requests
         List<OvertimeRequest> overtimeRequests = overtimeRequestRepository.findAll().stream()
-                .filter(or -> !or.getTglLembur().isBefore(startDate) && !or.getTglLembur().isAfter(endDate))
+                .filter(or -> !or.getTglLembur().isBefore(effectiveStartDate) && !or.getTglLembur().isAfter(effectiveEndDate))
                 .toList();
         DashboardStatsResponse.OvertimeSummary overtimeSummary = calculateOvertimeSummary(overtimeRequests);
 
