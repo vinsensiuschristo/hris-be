@@ -1,6 +1,5 @@
 package org.example.hris.application.service;
 
-import lombok.RequiredArgsConstructor;
 import org.example.hris.domain.model.*;
 import org.example.hris.domain.repository.EmployeeRepository;
 import org.example.hris.domain.repository.LeaveRequestRepository;
@@ -8,6 +7,7 @@ import org.example.hris.domain.repository.LeaveTypeRepository;
 import org.example.hris.infrastructure.persistence.entity.RequestStatusEntity;
 import org.example.hris.infrastructure.persistence.mapper.RequestStatusMapper;
 import org.example.hris.infrastructure.persistence.repository.RequestStatusRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class LeaveRequestService {
 
     private final LeaveRequestRepository leaveRequestRepository;
@@ -27,6 +26,21 @@ public class LeaveRequestService {
     private final RequestStatusRepository requestStatusRepository;
     private final RequestStatusMapper requestStatusMapper;
     private final EmployeeService employeeService;
+
+    public LeaveRequestService(
+            @Lazy LeaveRequestRepository leaveRequestRepository,
+            @Lazy EmployeeRepository employeeRepository,
+            LeaveTypeRepository leaveTypeRepository,
+            RequestStatusRepository requestStatusRepository,
+            RequestStatusMapper requestStatusMapper,
+            @Lazy EmployeeService employeeService) {
+        this.leaveRequestRepository = leaveRequestRepository;
+        this.employeeRepository = employeeRepository;
+        this.leaveTypeRepository = leaveTypeRepository;
+        this.requestStatusRepository = requestStatusRepository;
+        this.requestStatusMapper = requestStatusMapper;
+        this.employeeService = employeeService;
+    }
 
     private static final String STATUS_MENUNGGU = "MENUNGGU_PERSETUJUAN";
     private static final String STATUS_DISETUJUI = "DISETUJUI";

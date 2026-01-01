@@ -1,12 +1,12 @@
 package org.example.hris.application.service;
 
-import lombok.RequiredArgsConstructor;
 import org.example.hris.domain.model.Department;
 import org.example.hris.domain.model.Employee;
 import org.example.hris.domain.model.Position;
 import org.example.hris.domain.repository.DepartmentRepository;
 import org.example.hris.domain.repository.EmployeeRepository;
 import org.example.hris.domain.repository.PositionRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +15,20 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final PositionRepository positionRepository;
     private final DepartmentRepository departmentRepository;
+
+    public EmployeeService(
+            @Lazy EmployeeRepository employeeRepository,
+            PositionRepository positionRepository,
+            DepartmentRepository departmentRepository) {
+        this.employeeRepository = employeeRepository;
+        this.positionRepository = positionRepository;
+        this.departmentRepository = departmentRepository;
+    }
 
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();

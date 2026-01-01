@@ -1,6 +1,5 @@
 package org.example.hris.application.service;
 
-import lombok.RequiredArgsConstructor;
 import org.example.hris.domain.model.Employee;
 import org.example.hris.domain.model.OvertimePayment;
 import org.example.hris.domain.model.OvertimeRequest;
@@ -11,6 +10,7 @@ import org.example.hris.domain.repository.OvertimeRequestRepository;
 import org.example.hris.infrastructure.persistence.entity.RequestStatusEntity;
 import org.example.hris.infrastructure.persistence.mapper.RequestStatusMapper;
 import org.example.hris.infrastructure.persistence.repository.RequestStatusRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 public class OvertimePaymentService {
 
     private final OvertimePaymentRepository overtimePaymentRepository;
@@ -28,6 +27,19 @@ public class OvertimePaymentService {
     private final EmployeeRepository employeeRepository;
     private final RequestStatusRepository requestStatusRepository;
     private final RequestStatusMapper requestStatusMapper;
+
+    public OvertimePaymentService(
+            @Lazy OvertimePaymentRepository overtimePaymentRepository,
+            @Lazy OvertimeRequestRepository overtimeRequestRepository,
+            @Lazy EmployeeRepository employeeRepository,
+            RequestStatusRepository requestStatusRepository,
+            RequestStatusMapper requestStatusMapper) {
+        this.overtimePaymentRepository = overtimePaymentRepository;
+        this.overtimeRequestRepository = overtimeRequestRepository;
+        this.employeeRepository = employeeRepository;
+        this.requestStatusRepository = requestStatusRepository;
+        this.requestStatusMapper = requestStatusMapper;
+    }
 
     private static final String STATUS_DISETUJUI = "DISETUJUI";
     private static final String STATUS_BELUM_DIPROSES = "BELUM_DIPROSES";

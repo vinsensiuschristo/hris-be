@@ -1,6 +1,5 @@
 package org.example.hris.application.service;
 
-import lombok.RequiredArgsConstructor;
 import org.example.hris.domain.model.Attendance;
 import org.example.hris.domain.model.Employee;
 import org.example.hris.domain.repository.AttendanceRepository;

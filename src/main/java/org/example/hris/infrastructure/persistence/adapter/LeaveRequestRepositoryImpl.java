@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.hris.domain.model.LeaveRequest;
 import org.example.hris.domain.repository.LeaveRequestRepository;
 import org.example.hris.infrastructure.persistence.mapper.LeaveRequestMapper;
+import org.example.hris.infrastructure.persistence.repository.LeaveRequestJpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LeaveRequestRepositoryImpl implements LeaveRequestRepository {
 
-    private final org.example.hris.infrastructure.persistence.repository.LeaveRequestRepository leaveRequestJpaRepository;
+    private final LeaveRequestJpaRepository leaveRequestJpaRepository;
     private final LeaveRequestMapper leaveRequestMapper;
 
     @Override

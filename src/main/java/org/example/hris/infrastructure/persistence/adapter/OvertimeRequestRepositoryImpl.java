@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.hris.domain.model.OvertimeRequest;
 import org.example.hris.domain.repository.OvertimeRequestRepository;
 import org.example.hris.infrastructure.persistence.mapper.OvertimeRequestMapper;
+import org.example.hris.infrastructure.persistence.repository.OvertimeRequestJpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OvertimeRequestRepositoryImpl implements OvertimeRequestRepository {
 
-    private final org.example.hris.infrastructure.persistence.repository.OvertimeRequestRepository overtimeRequestJpaRepository;
+    private final OvertimeRequestJpaRepository overtimeRequestJpaRepository;
     private final OvertimeRequestMapper overtimeRequestMapper;
 
     @Override

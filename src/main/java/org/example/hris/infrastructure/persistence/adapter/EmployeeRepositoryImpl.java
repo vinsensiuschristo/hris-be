@@ -3,6 +3,7 @@ package org.example.hris.infrastructure.persistence.adapter;
 import org.example.hris.domain.model.Employee;
 import org.example.hris.domain.repository.EmployeeRepository;
 import org.example.hris.infrastructure.persistence.mapper.EmployeeMapper;
+import org.example.hris.infrastructure.persistence.repository.EmployeeJpaRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
@@ -13,11 +14,11 @@ import java.util.UUID;
 @Repository
 public class EmployeeRepositoryImpl implements EmployeeRepository {
 
-    private final org.example.hris.infrastructure.persistence.repository.EmployeeRepository employeeJpaRepository;
+    private final EmployeeJpaRepository employeeJpaRepository;
     private final EmployeeMapper employeeMapper;
 
     public EmployeeRepositoryImpl(
-            org.example.hris.infrastructure.persistence.repository.EmployeeRepository employeeJpaRepository,
+            EmployeeJpaRepository employeeJpaRepository,
             @Lazy EmployeeMapper employeeMapper) {
         this.employeeJpaRepository = employeeJpaRepository;
         this.employeeMapper = employeeMapper;

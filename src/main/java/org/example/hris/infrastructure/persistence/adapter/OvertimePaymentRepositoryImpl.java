@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.hris.domain.model.OvertimePayment;
 import org.example.hris.domain.repository.OvertimePaymentRepository;
 import org.example.hris.infrastructure.persistence.mapper.OvertimePaymentMapper;
+import org.example.hris.infrastructure.persistence.repository.OvertimePaymentJpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OvertimePaymentRepositoryImpl implements OvertimePaymentRepository {
 
-    private final org.example.hris.infrastructure.persistence.repository.OvertimePaymentRepository overtimePaymentJpaRepository;
+    private final OvertimePaymentJpaRepository overtimePaymentJpaRepository;
     private final OvertimePaymentMapper overtimePaymentMapper;
 
     @Override
@@ -40,10 +41,8 @@ public class OvertimePaymentRepositoryImpl implements OvertimePaymentRepository 
 
     @Override
     public Optional<OvertimePayment> findByPengajuanLemburId(UUID pengajuanLemburId) {
-        return overtimePaymentJpaRepository.findAll()
+        return overtimePaymentJpaRepository.findByPengajuanLembur_Id(pengajuanLemburId)
                 .stream()
-                .filter(entity -> entity.getPengajuanLembur() != null &&
-                        pengajuanLemburId.equals(entity.getPengajuanLembur().getId()))
                 .findFirst()
                 .map(overtimePaymentMapper::toDomain);
     }
