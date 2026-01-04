@@ -6,14 +6,18 @@ import org.example.hris.domain.model.User;
 import org.example.hris.domain.repository.RoleRepository;
 import org.example.hris.domain.repository.UserRepository;
 import org.example.hris.infrastructure.persistence.entity.EmployeeEntity;
+import org.example.hris.infrastructure.persistence.entity.RoleEntity;
 import org.example.hris.infrastructure.persistence.entity.UserEntity;
 import org.example.hris.infrastructure.persistence.repository.EmployeeJpaRepository;
+import org.example.hris.infrastructure.persistence.repository.RoleJpaRepository;
 import org.example.hris.infrastructure.persistence.repository.UserJpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -25,6 +29,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserJpaRepository userJpaRepository;
     private final EmployeeJpaRepository employeeJpaRepository;
+    private final RoleJpaRepository roleJpaRepository;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -43,56 +48,66 @@ public class UserService {
     @Transactional
     public User createUser(String username, String password, UUID roleId, UUID karyawanId) {
         // Check if username already exists
-        userRepository.findByUsername(username).ifPresent(u -> {
+        userJpaRepository.findByUsername(username).ifPresent(u -> {
             throw new IllegalArgumentException("Username sudah digunakan");
         });
 
-        // Validate role exists
-        Role role = roleRepository.findById(roleId)
+        // Get role entity
+        RoleEntity roleEntity = roleJpaRepository.findById(roleId)
                 .orElseThrow(() -> new IllegalArgumentException("Role tidak ditemukan"));
 
-        User user = User.builder()
-                .id(UUID.randomUUID())
+        // Build user entity directly to properly set roles
+        UserEntity userEntity = UserEntity.builder()
                 .username(username)
                 .passwordHash(passwordEncoder.encode(password))
+                .roles(new HashSet<>(Set.of(roleEntity)))
                 .build();
 
-        User savedUser = userRepository.save(user);
-        
         // Set karyawan relationship if provided
         if (karyawanId != null) {
-            UserEntity entity = userJpaRepository.findById(savedUser.getId()).orElseThrow();
             EmployeeEntity employee = employeeJpaRepository.findById(karyawanId)
                     .orElseThrow(() -> new IllegalArgumentException("Karyawan tidak ditemukan"));
-            entity.setKaryawan(employee);
-            userJpaRepository.save(entity);
+            userEntity.setKaryawan(employee);
         }
 
-        return savedUser;
+        // Save user with roles
+        UserEntity savedEntity = userJpaRepository.save(userEntity);
+
+        // Return domain model
+        return User.builder()
+                .id(savedEntity.getId())
+                .username(savedEntity.getUsername())
+                .passwordHash(savedEntity.getPasswordHash())
+                .build();
     }
 
     @Transactional
     public User updateUser(UUID id, String username, String password, UUID roleId, UUID karyawanId) {
-        User existing = getUserById(id);
+        UserEntity entity = userJpaRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
 
         if (username != null && !username.isBlank()) {
             // Check if new username is taken by another user
-            userRepository.findByUsername(username).ifPresent(u -> {
+            userJpaRepository.findByUsername(username).ifPresent(u -> {
                 if (!u.getId().equals(id)) {
                     throw new IllegalArgumentException("Username sudah digunakan");
                 }
             });
-            existing.setUsername(username);
+            entity.setUsername(username);
         }
 
         if (password != null && !password.isBlank()) {
-            existing.setPasswordHash(passwordEncoder.encode(password));
+            entity.setPasswordHash(passwordEncoder.encode(password));
         }
 
-        User savedUser = userRepository.save(existing);
-        
+        // Update role if provided
+        if (roleId != null) {
+            RoleEntity roleEntity = roleJpaRepository.findById(roleId)
+                    .orElseThrow(() -> new IllegalArgumentException("Role tidak ditemukan"));
+            entity.setRoles(new HashSet<>(Set.of(roleEntity)));
+        }
+
         // Update karyawan relationship
-        UserEntity entity = userJpaRepository.findById(id).orElseThrow();
         if (karyawanId != null) {
             EmployeeEntity employee = employeeJpaRepository.findById(karyawanId)
                     .orElseThrow(() -> new IllegalArgumentException("Karyawan tidak ditemukan"));
@@ -100,9 +115,14 @@ public class UserService {
         } else {
             entity.setKaryawan(null); // Allow unlinking
         }
-        userJpaRepository.save(entity);
 
-        return savedUser;
+        UserEntity savedEntity = userJpaRepository.save(entity);
+
+        return User.builder()
+                .id(savedEntity.getId())
+                .username(savedEntity.getUsername())
+                .passwordHash(savedEntity.getPasswordHash())
+                .build();
     }
 
     public void deleteUser(UUID id) {

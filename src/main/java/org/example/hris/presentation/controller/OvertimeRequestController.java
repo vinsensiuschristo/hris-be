@@ -5,14 +5,17 @@ import lombok.RequiredArgsConstructor;
 import org.example.hris.application.dto.leaveRequest.ApprovalRequest;
 import org.example.hris.application.dto.overtimeRequest.OvertimeRequestCreateRequest;
 import org.example.hris.application.dto.overtimeRequest.OvertimeRequestResponse;
+import org.example.hris.application.service.FileStorageService;
 import org.example.hris.application.service.OvertimeRequestService;
 import org.example.hris.domain.model.OvertimeRequest;
+import org.example.hris.infrastructure.persistence.entity.OvertimeEvidenceEntity;
+import org.example.hris.infrastructure.persistence.repository.OvertimeEvidenceRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +26,8 @@ import java.util.UUID;
 public class OvertimeRequestController {
 
     private final OvertimeRequestService overtimeRequestService;
+    private final OvertimeEvidenceRepository overtimeEvidenceRepository;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     @Operation(summary = "Get all overtime requests")
@@ -104,6 +109,17 @@ public class OvertimeRequestController {
     }
 
     private OvertimeRequestResponse toResponse(OvertimeRequest overtimeRequest) {
+        // Fetch evidences for this overtime request and generate signed URLs
+        List<OvertimeEvidenceEntity> evidenceEntities = overtimeEvidenceRepository.findByOvertimeRequest_Id(overtimeRequest.getId());
+        List<OvertimeRequestResponse.EvidenceSummary> evidences = evidenceEntities.stream()
+                .map(e -> OvertimeRequestResponse.EvidenceSummary.builder()
+                        .id(e.getId())
+                        .filePath(fileStorageService.getSignedUrl(e.getFilePath()))  // Generate signed URL
+                        .fileType(e.getFileType())
+                        .uploadedAt(e.getUploadedAt() != null ? e.getUploadedAt().atZone(ZoneId.systemDefault()).toLocalDateTime() : null)
+                        .build())
+                .toList();
+
         OvertimeRequestResponse.OvertimeRequestResponseBuilder builder = OvertimeRequestResponse.builder()
                 .id(overtimeRequest.getId())
                 .tglLembur(overtimeRequest.getTglLembur())
@@ -113,7 +129,7 @@ public class OvertimeRequestController {
                 .estimasiBiaya(overtimeRequest.getEstimasiBiaya())
                 .createdAt(overtimeRequest.getCreatedAt())
                 .updatedAt(overtimeRequest.getUpdatedAt())
-                .evidences(Collections.emptyList()); // Evidence handling can be added later
+                .evidences(evidences);
 
         if (overtimeRequest.getKaryawan() != null) {
             builder.karyawan(OvertimeRequestResponse.EmployeeSummary.builder()

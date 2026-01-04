@@ -6,7 +6,7 @@ import org.example.hris.infrastructure.persistence.mapper.common.DateTimeMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {DateTimeMapper.class})
+@Mapper(componentModel = "spring", uses = {DateTimeMapper.class}, imports = {java.util.UUID.class})
 public interface LeaveRequestMapper {
 
     @Mapping(target = "karyawan.id", source = "karyawan.id")
@@ -24,8 +24,10 @@ public interface LeaveRequestMapper {
     @Mapping(target = "status.namaStatus", source = "status.namaStatus")
     LeaveRequest toDomain(LeaveRequestEntity entity);
 
+    @Mapping(target = "id", expression = "java(domain.getId() != null ? domain.getId() : UUID.randomUUID())")
     @Mapping(target = "karyawan", ignore = true)
     @Mapping(target = "jenisCuti", ignore = true)
     @Mapping(target = "status", ignore = true)
     LeaveRequestEntity toEntity(LeaveRequest domain);
 }
+

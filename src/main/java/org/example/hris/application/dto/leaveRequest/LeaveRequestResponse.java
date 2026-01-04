@@ -8,6 +8,8 @@ import org.example.hris.application.dto.leaveType.LeaveTypeResponse;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -23,6 +25,7 @@ public class LeaveRequestResponse {
     private LocalDate tglSelesai;
     private String alasan;
     private long jumlahHari;
+    private List<EvidenceSummary> evidences;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -46,4 +49,16 @@ public class LeaveRequestResponse {
         private UUID id;
         private String namaStatus;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class EvidenceSummary {
+        private UUID id;
+        private String filePath;
+        private String fileType;
+        private LocalDateTime uploadedAt;
+    }
 }
+

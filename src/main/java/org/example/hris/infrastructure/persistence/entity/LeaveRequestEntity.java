@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -38,6 +40,10 @@ public class LeaveRequestEntity {
     @Column(columnDefinition = "text")
     private String alasan;
 
+    @OneToMany(mappedBy = "leaveRequest", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<LeaveEvidenceEntity> evidences = new ArrayList<>();
+
     @Column(name = "created_at")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -46,3 +52,4 @@ public class LeaveRequestEntity {
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 }
+

@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.example.hris.application.dto.auth.AuthResponse;
 import org.example.hris.application.dto.auth.LoginRequest;
 import org.example.hris.application.dto.auth.RegisterRequest;
+import org.example.hris.application.dto.role.RoleResponse;
+import org.example.hris.application.dto.user.UserResponse;
 import org.example.hris.infrastructure.persistence.entity.RoleEntity;
 import org.example.hris.infrastructure.persistence.entity.UserEntity;
 import org.example.hris.infrastructure.persistence.repository.RoleJpaRepository;
-import org.example.hris.infrastructure.persistence.repository.UserRepository;
+import org.example.hris.infrastructure.persistence.repository.UserJpaRepository;
 import org.example.hris.infrastructure.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,83 +19,95 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final RoleJpaRepository roleJpaRepository; // Pastikan Anda sudah membuat repo ini
-    private final PasswordEncoder passwordEncoder;     // Dari ApplicationConfig
+    private final UserJpaRepository userJpaRepository;
+    private final RoleJpaRepository roleJpaRepository;
+    private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager; // Dari ApplicationConfig
-    private final UserDetailsService userDetailsService; // Dari ApplicationConfig
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        // 1. Cek jika user sudah ada
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+        if (userJpaRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username already taken");
         }
 
-        // 2. Cari role default, misal "KARYAWAN"
-        // PENTING: Pastikan role "KARYAWAN" ada di tabel 'roles' database Anda
         RoleEntity defaultRole = roleJpaRepository.findByNamaRole("KARYAWAN")
                 .orElseThrow(() -> new RuntimeException("Default role 'KARYAWAN' not found. Please seed the database."));
 
-        // 3. Buat UserEntity baru
         UserEntity user = UserEntity.builder()
                 .username(request.getUsername())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .roles(Set.of(defaultRole))
-                // Anda bisa tambahkan link ke EmployeeEntity di sini jika perlu
                 .build();
 
-        // 4. Simpan user baru
-        userRepository.save(user);
+        userJpaRepository.save(user);
 
-        // 5. Generate token untuk user yang baru register
-        UserDetails userDetails = user; // UserEntity Anda sudah implement UserDetails
-        String jwtToken = jwtService.generateToken(userDetails);
+        String jwtToken = jwtService.generateToken(user);
 
         return AuthResponse.builder()
                 .token(jwtToken)
                 .username(user.getUsername())
+                .user(buildUserResponse(user))
                 .build();
     }
 
     public AuthResponse login(LoginRequest request) {
-        System.out.println("=== LOGIN ATTEMPT ===");
-        System.out.println("Username: " + request.getUsername());
-        System.out.println("Password length: " + (request.getPassword() != null ? request.getPassword().length() : 0));
-        
         try {
-            // 1. Autentikasi user
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getUsername(),
                             request.getPassword()
                     )
             );
-            System.out.println("Authentication successful!");
 
-            // 2. Jika autentikasi berhasil
-            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+            UserEntity user = userJpaRepository.findByUsername(request.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // 3. Generate token
-            String jwtToken = jwtService.generateToken(userDetails);
-            System.out.println("Token generated successfully");
+            String jwtToken = jwtService.generateToken(user);
 
             return AuthResponse.builder()
                     .token(jwtToken)
-                    .username(userDetails.getUsername())
+                    .username(user.getUsername())
+                    .user(buildUserResponse(user))
                     .build();
         } catch (Exception e) {
             System.out.println("Authentication FAILED: " + e.getClass().getSimpleName());
             System.out.println("Error message: " + e.getMessage());
-            e.printStackTrace();
             throw e;
         }
+    }
+
+    private UserResponse buildUserResponse(UserEntity user) {
+        List<RoleResponse> roleResponses = user.getRoles().stream()
+                .map(role -> RoleResponse.builder()
+                        .id(role.getId())
+                        .namaRole(role.getNamaRole())
+                        .build())
+                .collect(Collectors.toList());
+
+        UserResponse.KaryawanInfo karyawanInfo = null;
+        if (user.getKaryawan() != null) {
+            karyawanInfo = UserResponse.KaryawanInfo.builder()
+                    .id(user.getKaryawan().getId())
+                    .nama(user.getKaryawan().getNama())
+                    .nik(user.getKaryawan().getNik())
+                    .build();
+        }
+
+        return UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .roles(roleResponses)
+                .karyawan(karyawanInfo)
+                .build();
     }
 }

@@ -3,8 +3,12 @@ package org.example.hris.infrastructure.persistence.adapter;
 import lombok.RequiredArgsConstructor;
 import org.example.hris.domain.model.LeaveRequest;
 import org.example.hris.domain.repository.LeaveRequestRepository;
+import org.example.hris.infrastructure.persistence.entity.LeaveRequestEntity;
 import org.example.hris.infrastructure.persistence.mapper.LeaveRequestMapper;
+import org.example.hris.infrastructure.persistence.repository.EmployeeJpaRepository;
 import org.example.hris.infrastructure.persistence.repository.LeaveRequestJpaRepository;
+import org.example.hris.infrastructure.persistence.repository.LeaveTypeJpaRepository;
+import org.example.hris.infrastructure.persistence.repository.RequestStatusRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,12 +21,33 @@ public class LeaveRequestRepositoryImpl implements LeaveRequestRepository {
 
     private final LeaveRequestJpaRepository leaveRequestJpaRepository;
     private final LeaveRequestMapper leaveRequestMapper;
+    private final EmployeeJpaRepository employeeJpaRepository;
+    private final LeaveTypeJpaRepository leaveTypeJpaRepository;
+    private final RequestStatusRepository requestStatusRepository;
 
     @Override
     public LeaveRequest save(LeaveRequest leaveRequest) {
-        return leaveRequestMapper.toDomain(
-                leaveRequestJpaRepository.save(leaveRequestMapper.toEntity(leaveRequest))
-        );
+        LeaveRequestEntity entity = leaveRequestMapper.toEntity(leaveRequest);
+        
+        // Set karyawan entity (ignored by mapper)
+        if (leaveRequest.getKaryawan() != null && leaveRequest.getKaryawan().getId() != null) {
+            employeeJpaRepository.findById(leaveRequest.getKaryawan().getId())
+                    .ifPresent(entity::setKaryawan);
+        }
+        
+        // Set jenisCuti entity (ignored by mapper)
+        if (leaveRequest.getJenisCuti() != null && leaveRequest.getJenisCuti().getId() != null) {
+            leaveTypeJpaRepository.findById(leaveRequest.getJenisCuti().getId())
+                    .ifPresent(entity::setJenisCuti);
+        }
+        
+        // Set status entity (ignored by mapper)
+        if (leaveRequest.getStatus() != null && leaveRequest.getStatus().getId() != null) {
+            requestStatusRepository.findById(leaveRequest.getStatus().getId())
+                    .ifPresent(entity::setStatus);
+        }
+        
+        return leaveRequestMapper.toDomain(leaveRequestJpaRepository.save(entity));
     }
 
     @Override

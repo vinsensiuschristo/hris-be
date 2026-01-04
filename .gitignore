@@ -33,3 +33,8 @@ build/
 .vscode/
 
 flyway.conf
+
+### Environment & Local Config ###
+.env
+.env.local
+src/main/resources/application-local.properties

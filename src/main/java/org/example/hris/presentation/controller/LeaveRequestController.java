@@ -6,13 +6,17 @@ import org.example.hris.application.dto.leaveRequest.ApprovalRequest;
 import org.example.hris.application.dto.leaveRequest.LeaveRequestCreateRequest;
 import org.example.hris.application.dto.leaveRequest.LeaveRequestResponse;
 import org.example.hris.application.dto.leaveType.LeaveTypeResponse;
+import org.example.hris.application.service.FileStorageService;
 import org.example.hris.application.service.LeaveRequestService;
 import org.example.hris.domain.model.LeaveRequest;
+import org.example.hris.infrastructure.persistence.entity.LeaveEvidenceEntity;
+import org.example.hris.infrastructure.persistence.repository.LeaveEvidenceRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +28,8 @@ import java.util.UUID;
 public class LeaveRequestController {
 
     private final LeaveRequestService leaveRequestService;
+    private final LeaveEvidenceRepository leaveEvidenceRepository;
+    private final FileStorageService fileStorageService;
 
     @GetMapping
     @Operation(summary = "Get all leave requests")
@@ -98,12 +104,24 @@ public class LeaveRequestController {
     private LeaveRequestResponse toResponse(LeaveRequest leaveRequest) {
         long jumlahHari = ChronoUnit.DAYS.between(leaveRequest.getTglMulai(), leaveRequest.getTglSelesai()) + 1;
 
+        // Fetch evidences for this leave request and generate signed URLs
+        List<LeaveEvidenceEntity> evidenceEntities = leaveEvidenceRepository.findByLeaveRequest_Id(leaveRequest.getId());
+        List<LeaveRequestResponse.EvidenceSummary> evidences = evidenceEntities.stream()
+                .map(e -> LeaveRequestResponse.EvidenceSummary.builder()
+                        .id(e.getId())
+                        .filePath(fileStorageService.getSignedUrl(e.getFilePath()))  // Generate signed URL
+                        .fileType(e.getFileType())
+                        .uploadedAt(e.getUploadedAt() != null ? e.getUploadedAt().atZone(ZoneId.systemDefault()).toLocalDateTime() : null)
+                        .build())
+                .toList();
+
         LeaveRequestResponse.LeaveRequestResponseBuilder builder = LeaveRequestResponse.builder()
                 .id(leaveRequest.getId())
                 .tglMulai(leaveRequest.getTglMulai())
                 .tglSelesai(leaveRequest.getTglSelesai())
                 .alasan(leaveRequest.getAlasan())
                 .jumlahHari(jumlahHari)
+                .evidences(evidences)
                 .createdAt(leaveRequest.getCreatedAt())
                 .updatedAt(leaveRequest.getUpdatedAt());
 
