@@ -17,4 +17,15 @@ public class UserResponse {
     private UUID id;
     private String username;
     private List<RoleResponse> roles;
+    private KaryawanInfo karyawan;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class KaryawanInfo {
+        private UUID id;
+        private String nama;
+        private String nik;
+    }
 }

@@ -9,4 +9,5 @@ public class UserUpdateRequest {
     private String username;
     private String password;
     private UUID roleId;
+    private UUID karyawanId;
 }

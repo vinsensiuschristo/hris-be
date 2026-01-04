@@ -26,11 +26,11 @@ public class EmployeeEntity {
     @Column(nullable = false)
     private String nama;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "jabatan_id")
     private PositionEntity jabatan;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "departemen_id")
     private DepartmentEntity departemen;
 

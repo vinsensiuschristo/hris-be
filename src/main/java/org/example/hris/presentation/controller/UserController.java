@@ -52,7 +52,8 @@ public class UserController {
         User created = userService.createUser(
                 request.getUsername(),
                 request.getPassword(),
-                request.getRoleId()
+                request.getRoleId(),
+                request.getKaryawanId()
         );
         // Fetch entity to get roles for response
         UserEntity entity = userJpaRepository.findById(created.getId())
@@ -70,7 +71,8 @@ public class UserController {
                 id,
                 request.getUsername(),
                 request.getPassword(),
-                request.getRoleId()
+                request.getRoleId(),
+                request.getKaryawanId()
         );
         UserEntity entity = userJpaRepository.findById(updated.getId())
                 .orElseThrow();
@@ -92,10 +94,20 @@ public class UserController {
                         .build())
                 .collect(Collectors.toList());
 
+        UserResponse.KaryawanInfo karyawanInfo = null;
+        if (entity.getKaryawan() != null) {
+            karyawanInfo = UserResponse.KaryawanInfo.builder()
+                    .id(entity.getKaryawan().getId())
+                    .nama(entity.getKaryawan().getNama())
+                    .nik(entity.getKaryawan().getNik())
+                    .build();
+        }
+
         return UserResponse.builder()
                 .id(entity.getId())
                 .username(entity.getUsername())
                 .roles(roles)
+                .karyawan(karyawanInfo)
                 .build();
     }
 }

@@ -5,8 +5,13 @@ import org.example.hris.domain.model.Role;
 import org.example.hris.domain.model.User;
 import org.example.hris.domain.repository.RoleRepository;
 import org.example.hris.domain.repository.UserRepository;
+import org.example.hris.infrastructure.persistence.entity.EmployeeEntity;
+import org.example.hris.infrastructure.persistence.entity.UserEntity;
+import org.example.hris.infrastructure.persistence.repository.EmployeeJpaRepository;
+import org.example.hris.infrastructure.persistence.repository.UserJpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +23,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserJpaRepository userJpaRepository;
+    private final EmployeeJpaRepository employeeJpaRepository;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -33,7 +40,8 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
     }
 
-    public User createUser(String username, String password, UUID roleId) {
+    @Transactional
+    public User createUser(String username, String password, UUID roleId, UUID karyawanId) {
         // Check if username already exists
         userRepository.findByUsername(username).ifPresent(u -> {
             throw new IllegalArgumentException("Username sudah digunakan");
@@ -49,10 +57,22 @@ public class UserService {
                 .passwordHash(passwordEncoder.encode(password))
                 .build();
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        
+        // Set karyawan relationship if provided
+        if (karyawanId != null) {
+            UserEntity entity = userJpaRepository.findById(savedUser.getId()).orElseThrow();
+            EmployeeEntity employee = employeeJpaRepository.findById(karyawanId)
+                    .orElseThrow(() -> new IllegalArgumentException("Karyawan tidak ditemukan"));
+            entity.setKaryawan(employee);
+            userJpaRepository.save(entity);
+        }
+
+        return savedUser;
     }
 
-    public User updateUser(UUID id, String username, String password, UUID roleId) {
+    @Transactional
+    public User updateUser(UUID id, String username, String password, UUID roleId, UUID karyawanId) {
         User existing = getUserById(id);
 
         if (username != null && !username.isBlank()) {
@@ -69,7 +89,20 @@ public class UserService {
             existing.setPasswordHash(passwordEncoder.encode(password));
         }
 
-        return userRepository.save(existing);
+        User savedUser = userRepository.save(existing);
+        
+        // Update karyawan relationship
+        UserEntity entity = userJpaRepository.findById(id).orElseThrow();
+        if (karyawanId != null) {
+            EmployeeEntity employee = employeeJpaRepository.findById(karyawanId)
+                    .orElseThrow(() -> new IllegalArgumentException("Karyawan tidak ditemukan"));
+            entity.setKaryawan(employee);
+        } else {
+            entity.setKaryawan(null); // Allow unlinking
+        }
+        userJpaRepository.save(entity);
+
+        return savedUser;
     }
 
     public void deleteUser(UUID id) {

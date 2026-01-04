@@ -17,4 +17,6 @@ public class UserCreateRequest {
     private String password;
 
     private UUID roleId;
+    
+    private UUID karyawanId;
 }
