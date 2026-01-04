@@ -18,7 +18,6 @@ public class RoleEntity {
 
     @Id
     @Builder.Default
-    @GeneratedValue(generator = "UUID")
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id = UUID.randomUUID();
 
