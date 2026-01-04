@@ -40,6 +40,9 @@ public class LeaveRequestEntity {
     @Column(columnDefinition = "text")
     private String alasan;
 
+    @Column(name = "alasan_penolakan", columnDefinition = "text")
+    private String alasanPenolakan;
+
     @OneToMany(mappedBy = "leaveRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<LeaveEvidenceEntity> evidences = new ArrayList<>();

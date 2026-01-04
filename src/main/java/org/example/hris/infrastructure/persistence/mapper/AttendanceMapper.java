@@ -6,7 +6,7 @@ import org.example.hris.infrastructure.persistence.mapper.common.DateTimeMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {DateTimeMapper.class})
+@Mapper(componentModel = "spring", uses = {DateTimeMapper.class, EmployeeMapper.class})
 public interface AttendanceMapper {
 
     @Mapping(target = "karyawan.id", source = "karyawan.id")
@@ -20,6 +20,7 @@ public interface AttendanceMapper {
     @Mapping(target = "karyawan.departemen.namaDepartement", source = "karyawan.departemen.namaDepartemen")
     Attendance toDomain(AttendanceEntity entity);
 
-    @Mapping(target = "karyawan", ignore = true)
+    @Mapping(target = "karyawan.id", source = "karyawan.id")
     AttendanceEntity toEntity(Attendance domain);
 }
+

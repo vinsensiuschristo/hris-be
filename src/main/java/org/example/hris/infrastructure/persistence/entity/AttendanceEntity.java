@@ -20,8 +20,7 @@ import java.util.UUID;
 public class AttendanceEntity {
 
     @Id
-    @Builder.Default
-    private UUID id = UUID.randomUUID();
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "karyawan_id")
@@ -45,4 +44,12 @@ public class AttendanceEntity {
 
     @UpdateTimestamp
     private Instant updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 }
+

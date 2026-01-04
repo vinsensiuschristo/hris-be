@@ -41,6 +41,9 @@ public class OvertimeRequestEntity {
     @JoinColumn(name = "status_id")
     private RequestStatusEntity status;
 
+    @Column(name = "alasan_penolakan", columnDefinition = "text")
+    private String alasanPenolakan;
+
     @OneToMany(mappedBy = "overtimeRequest", fetch = FetchType.LAZY)
     private List<OvertimeEvidenceEntity> evidences;
 

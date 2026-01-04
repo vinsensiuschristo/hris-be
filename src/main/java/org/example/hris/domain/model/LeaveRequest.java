@@ -21,6 +21,7 @@ public class LeaveRequest {
     private LocalDate tglMulai;
     private LocalDate tglSelesai;
     private String alasan;
+    private String alasanPenolakan;
 
     @Builder.Default
     private Instant createdAt = Instant.now();

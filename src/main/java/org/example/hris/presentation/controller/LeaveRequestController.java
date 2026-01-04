@@ -97,7 +97,8 @@ public class LeaveRequestController {
             @PathVariable UUID id,
             @RequestBody(required = false) ApprovalRequest request
     ) {
-        LeaveRequest rejected = leaveRequestService.rejectLeaveRequest(id);
+        String reason = request != null ? request.getReason() : null;
+        LeaveRequest rejected = leaveRequestService.rejectLeaveRequest(id, reason);
         return ResponseEntity.ok(toResponse(rejected));
     }
 
@@ -120,6 +121,7 @@ public class LeaveRequestController {
                 .tglMulai(leaveRequest.getTglMulai())
                 .tglSelesai(leaveRequest.getTglSelesai())
                 .alasan(leaveRequest.getAlasan())
+                .alasanPenolakan(leaveRequest.getAlasanPenolakan())
                 .jumlahHari(jumlahHari)
                 .evidences(evidences)
                 .createdAt(leaveRequest.getCreatedAt())

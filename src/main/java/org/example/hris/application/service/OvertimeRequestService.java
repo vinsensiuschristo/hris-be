@@ -40,6 +40,8 @@ public class OvertimeRequestService {
     }
 
     private static final String STATUS_MENUNGGU = "MENUNGGU_PERSETUJUAN";
+    private static final String STATUS_MENUNGGU_REIMBURSE = "MENUNGGU_REIMBURSE";
+    private static final String STATUS_DIBAYAR = "DIBAYAR";
     private static final String STATUS_DISETUJUI = "DISETUJUI";
     private static final String STATUS_DITOLAK = "DITOLAK";
 
@@ -64,7 +66,11 @@ public class OvertimeRequestService {
     }
 
     public List<OvertimeRequest> getApprovedOvertimeRequests() {
-        return overtimeRequestRepository.findByStatusNamaStatus(STATUS_DISETUJUI);
+        return overtimeRequestRepository.findByStatusNamaStatus(STATUS_MENUNGGU_REIMBURSE);
+    }
+
+    public List<OvertimeRequest> getPaidOvertimeRequests() {
+        return overtimeRequestRepository.findByStatusNamaStatus(STATUS_DIBAYAR);
     }
 
     @Transactional
@@ -115,9 +121,9 @@ public class OvertimeRequestService {
             throw new RuntimeException("Pengajuan lembur sudah diproses sebelumnya");
         }
 
-        // Update status to approved
-        RequestStatusEntity statusEntity = requestStatusRepository.findByNamaStatus(STATUS_DISETUJUI)
-                .orElseThrow(() -> new RuntimeException("Status DISETUJUI tidak ditemukan"));
+        // Update status to MENUNGGU_REIMBURSE (approved, waiting for payment)
+        RequestStatusEntity statusEntity = requestStatusRepository.findByNamaStatus(STATUS_MENUNGGU_REIMBURSE)
+                .orElseThrow(() -> new RuntimeException("Status MENUNGGU_REIMBURSE tidak ditemukan"));
         RequestStatus status = requestStatusMapper.toDomain(statusEntity);
 
         overtimeRequest.setStatus(status);
@@ -127,7 +133,7 @@ public class OvertimeRequestService {
     }
 
     @Transactional
-    public OvertimeRequest rejectOvertimeRequest(UUID id) {
+    public OvertimeRequest rejectOvertimeRequest(UUID id, String alasanPenolakan) {
         OvertimeRequest overtimeRequest = getOvertimeRequestById(id);
 
         // Validate current status
@@ -138,6 +144,28 @@ public class OvertimeRequestService {
         // Update status to rejected
         RequestStatusEntity statusEntity = requestStatusRepository.findByNamaStatus(STATUS_DITOLAK)
                 .orElseThrow(() -> new RuntimeException("Status DITOLAK tidak ditemukan"));
+        RequestStatus status = requestStatusMapper.toDomain(statusEntity);
+
+        overtimeRequest.setStatus(status);
+        overtimeRequest.setAlasanPenolakan(alasanPenolakan);
+        overtimeRequest.setUpdatedAt(LocalDateTime.now());
+
+        return overtimeRequestRepository.save(overtimeRequest);
+    }
+
+    @Transactional
+    public OvertimeRequest reimburseOvertimeRequest(UUID id) {
+        OvertimeRequest overtimeRequest = getOvertimeRequestById(id);
+
+        // Validate current status - must be MENUNGGU_REIMBURSE
+        if (!STATUS_MENUNGGU_REIMBURSE.equals(overtimeRequest.getStatus().getNamaStatus())) {
+            throw new RuntimeException("Pengajuan lembur harus dalam status MENUNGGU_REIMBURSE untuk dapat dibayar. Status saat ini: " + 
+                    overtimeRequest.getStatus().getNamaStatus());
+        }
+
+        // Update status to DIBAYAR
+        RequestStatusEntity statusEntity = requestStatusRepository.findByNamaStatus(STATUS_DIBAYAR)
+                .orElseThrow(() -> new RuntimeException("Status DIBAYAR tidak ditemukan"));
         RequestStatus status = requestStatusMapper.toDomain(statusEntity);
 
         overtimeRequest.setStatus(status);
@@ -152,3 +180,4 @@ public class OvertimeRequestService {
         return OVERTIME_RATE_PER_HOUR.multiply(BigDecimal.valueOf(durasiJam));
     }
 }
+

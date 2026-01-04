@@ -80,14 +80,31 @@ public class AttendanceService {
             throw new RuntimeException("Karyawan sudah melakukan check-in hari ini");
         }
 
-        // Calculate lateness using dynamic settings
+        // Get work hours settings
+        LocalTime jamKerjaMulai = workHoursSettingsService.getJamMasuk();
+        LocalTime jamKerjaSelesai = workHoursSettingsService.getJamKeluar();
+        int toleransiMenit = workHoursSettingsService.getToleransiMenit();
+        
+        // Validation: Check-in window (max 2 hours before work start, max 4 hours after)
+        LocalTime earliestCheckIn = jamKerjaMulai.minusHours(2);
+        LocalTime latestCheckIn = jamKerjaMulai.plusHours(4);
+        
+        if (actualJamMasuk.isBefore(earliestCheckIn)) {
+            throw new RuntimeException(
+                String.format("Belum bisa check-in. Waktu check-in dimulai pukul %s (2 jam sebelum jam kerja)", 
+                    earliestCheckIn.toString()));
+        }
+        
+        // Calculate lateness and status
         int keterlambatanMenit = 0;
         String status = STATUS_HADIR;
-        LocalTime jamKerjaMulai = workHoursSettingsService.getJamMasuk();
-        int toleransiMenit = workHoursSettingsService.getToleransiMenit();
         LocalTime batasWaktu = jamKerjaMulai.plusMinutes(toleransiMenit);
 
-        if (actualJamMasuk.isAfter(batasWaktu)) {
+        if (actualJamMasuk.isAfter(latestCheckIn)) {
+            // More than 4 hours late = ALPHA (Absent) - but still allow check-in for record
+            keterlambatanMenit = (int) ChronoUnit.MINUTES.between(jamKerjaMulai, actualJamMasuk);
+            status = STATUS_ALPHA;
+        } else if (actualJamMasuk.isAfter(batasWaktu)) {
             keterlambatanMenit = (int) ChronoUnit.MINUTES.between(jamKerjaMulai, actualJamMasuk);
             status = STATUS_TERLAMBAT;
         }

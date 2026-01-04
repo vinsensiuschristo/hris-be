@@ -24,6 +24,7 @@ public class OvertimeRequest {
     private Integer durasi;
     private BigDecimal estimasiBiaya;
     private RequestStatus status;
+    private String alasanPenolakan;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

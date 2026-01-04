@@ -24,6 +24,7 @@ public class LeaveRequestResponse {
     private LocalDate tglMulai;
     private LocalDate tglSelesai;
     private String alasan;
+    private String alasanPenolakan;
     private long jumlahHari;
     private List<EvidenceSummary> evidences;
     private Instant createdAt;

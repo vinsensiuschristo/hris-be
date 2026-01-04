@@ -25,6 +25,7 @@ public class OvertimeRequestResponse {
     private Integer durasi;
     private BigDecimal estimasiBiaya;
     private StatusResponse status;
+    private String alasanPenolakan;
     private List<EvidenceSummary> evidences;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

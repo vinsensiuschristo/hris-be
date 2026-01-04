@@ -3,8 +3,11 @@ package org.example.hris.infrastructure.persistence.adapter;
 import lombok.RequiredArgsConstructor;
 import org.example.hris.domain.model.Attendance;
 import org.example.hris.domain.repository.AttendanceRepository;
+import org.example.hris.infrastructure.persistence.entity.AttendanceEntity;
+import org.example.hris.infrastructure.persistence.entity.EmployeeEntity;
 import org.example.hris.infrastructure.persistence.mapper.AttendanceMapper;
 import org.example.hris.infrastructure.persistence.repository.AttendanceJpaRepository;
+import org.example.hris.infrastructure.persistence.repository.EmployeeJpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -17,13 +20,21 @@ import java.util.UUID;
 public class AttendanceRepositoryImpl implements AttendanceRepository {
 
     private final AttendanceJpaRepository attendanceJpaRepository;
+    private final EmployeeJpaRepository employeeJpaRepository;
     private final AttendanceMapper attendanceMapper;
 
     @Override
     public Attendance save(Attendance attendance) {
-        return attendanceMapper.toDomain(
-                attendanceJpaRepository.save(attendanceMapper.toEntity(attendance))
-        );
+        AttendanceEntity entity = attendanceMapper.toEntity(attendance);
+        
+        // Manually set the employee reference if present in domain model
+        if (attendance.getKaryawan() != null && attendance.getKaryawan().getId() != null) {
+            EmployeeEntity employee = employeeJpaRepository.findById(attendance.getKaryawan().getId())
+                    .orElseThrow(() -> new RuntimeException("Employee not found: " + attendance.getKaryawan().getId()));
+            entity.setKaryawan(employee);
+        }
+        
+        return attendanceMapper.toDomain(attendanceJpaRepository.save(entity));
     }
 
     @Override

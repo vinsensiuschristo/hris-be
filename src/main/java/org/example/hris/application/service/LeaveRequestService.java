@@ -134,7 +134,7 @@ public class LeaveRequestService {
     }
 
     @Transactional
-    public LeaveRequest rejectLeaveRequest(UUID id) {
+    public LeaveRequest rejectLeaveRequest(UUID id, String alasanPenolakan) {
         LeaveRequest leaveRequest = getLeaveRequestById(id);
 
         // Validate current status
@@ -148,6 +148,7 @@ public class LeaveRequestService {
         RequestStatus status = requestStatusMapper.toDomain(statusEntity);
 
         leaveRequest.setStatus(status);
+        leaveRequest.setAlasanPenolakan(alasanPenolakan);
         leaveRequest.setUpdatedAt(Instant.now());
 
         return leaveRequestRepository.save(leaveRequest);

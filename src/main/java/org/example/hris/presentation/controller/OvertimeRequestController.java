@@ -104,8 +104,16 @@ public class OvertimeRequestController {
             @PathVariable UUID id,
             @RequestBody(required = false) ApprovalRequest request
     ) {
-        OvertimeRequest rejected = overtimeRequestService.rejectOvertimeRequest(id);
+        String reason = request != null ? request.getReason() : null;
+        OvertimeRequest rejected = overtimeRequestService.rejectOvertimeRequest(id, reason);
         return ResponseEntity.ok(toResponse(rejected));
+    }
+
+    @PutMapping("/{id}/reimburse")
+    @Operation(summary = "Mark overtime as paid/reimbursed (HR/Finance)")
+    public ResponseEntity<OvertimeRequestResponse> reimburse(@PathVariable UUID id) {
+        OvertimeRequest reimbursed = overtimeRequestService.reimburseOvertimeRequest(id);
+        return ResponseEntity.ok(toResponse(reimbursed));
     }
 
     private OvertimeRequestResponse toResponse(OvertimeRequest overtimeRequest) {
@@ -127,6 +135,7 @@ public class OvertimeRequestController {
                 .jamSelesai(overtimeRequest.getJamSelesai())
                 .durasi(overtimeRequest.getDurasi())
                 .estimasiBiaya(overtimeRequest.getEstimasiBiaya())
+                .alasanPenolakan(overtimeRequest.getAlasanPenolakan())
                 .createdAt(overtimeRequest.getCreatedAt())
                 .updatedAt(overtimeRequest.getUpdatedAt())
                 .evidences(evidences);
