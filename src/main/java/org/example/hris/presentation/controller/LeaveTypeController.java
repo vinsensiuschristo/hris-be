@@ -23,6 +23,7 @@ public class LeaveTypeController {
     @PostMapping
     public ResponseEntity<LeaveTypeResponse> create(@Valid @RequestBody LeaveTypeCreateRequest request) {
         LeaveType leaveType = LeaveType.builder()
+                .id(UUID.randomUUID())
                 .namaJenis(request.getNamaJenis())
                 .build();
 

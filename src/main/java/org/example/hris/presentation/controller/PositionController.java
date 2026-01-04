@@ -23,6 +23,7 @@ public class PositionController {
     @PostMapping
     public ResponseEntity<PositionResponse> create(@Valid @RequestBody PositionCreateRequest request) {
         Position position = Position.builder()
+                .id(UUID.randomUUID())
                 .namaJabatan(request.getNamaJabatan())
                 .build();
 

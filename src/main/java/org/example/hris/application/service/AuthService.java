@@ -64,26 +64,36 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        // 1. Autentikasi user
-        // Spring Security akan menggunakan AuthenticationProvider yang kita buat
-        // untuk mengecek username di UserDetailsService dan memvalidasi password dengan PasswordEncoder
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+        System.out.println("=== LOGIN ATTEMPT ===");
+        System.out.println("Username: " + request.getUsername());
+        System.out.println("Password length: " + (request.getPassword() != null ? request.getPassword().length() : 0));
+        
+        try {
+            // 1. Autentikasi user
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+            System.out.println("Authentication successful!");
 
-        // 2. Jika autentikasi berhasil (tidak ada exception)
-        // Ambil user details lagi untuk generate token
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+            // 2. Jika autentikasi berhasil
+            UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
 
-        // 3. Generate token
-        String jwtToken = jwtService.generateToken(userDetails);
+            // 3. Generate token
+            String jwtToken = jwtService.generateToken(userDetails);
+            System.out.println("Token generated successfully");
 
-        return AuthResponse.builder()
-                .token(jwtToken)
-                .username(userDetails.getUsername())
-                .build();
+            return AuthResponse.builder()
+                    .token(jwtToken)
+                    .username(userDetails.getUsername())
+                    .build();
+        } catch (Exception e) {
+            System.out.println("Authentication FAILED: " + e.getClass().getSimpleName());
+            System.out.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 }

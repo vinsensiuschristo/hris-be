@@ -23,6 +23,7 @@ public class DepartmentController {
     @PostMapping
     public ResponseEntity<DepartmentResponse> create(@Valid @RequestBody DepartmentCreateRequest request) {
         Department department = Department.builder()
+                .id(UUID.randomUUID())
                 .namaDepartement(request.getNamaDepartment())
                 .build();
 

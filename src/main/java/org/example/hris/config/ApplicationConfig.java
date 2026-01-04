@@ -1,7 +1,7 @@
 package org.example.hris.config;
 
 import lombok.RequiredArgsConstructor;
-import org.example.hris.infrastructure.persistence.repository.UserRepository;
+import org.example.hris.infrastructure.persistence.repository.UserJpaRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,16 +17,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    // Kita akan inject UserRepository di sini (lihat file berikutnya)
-    private final UserRepository userRepository;
+    // Use UserJpaRepository which returns UserEntity (implements UserDetails)
+    private final UserJpaRepository userJpaRepository;
 
     /**
      * Bean ini memberi tahu Spring Security cara mengambil data user.
-     * Kita menggunakan implementasi lambda untuk mengambil UserEntity dari database.
+     * UserEntity implements UserDetails jadi bisa langsung digunakan.
      */
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByUsername(username)
+        return username -> userJpaRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 

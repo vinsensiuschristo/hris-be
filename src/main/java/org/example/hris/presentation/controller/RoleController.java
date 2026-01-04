@@ -23,6 +23,7 @@ public class RoleController {
     @PostMapping
     public ResponseEntity<RoleResponse> create(@Valid @RequestBody RoleCreateRequest request) {
         Role role = Role.builder()
+                .id(UUID.randomUUID())
                 .namaRole(request.getNamaRole())
                 .build();
 
