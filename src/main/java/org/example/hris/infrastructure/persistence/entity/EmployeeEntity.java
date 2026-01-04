@@ -16,9 +16,8 @@ import java.util.UUID;
 public class EmployeeEntity {
 
     @Id
-    @GeneratedValue
-    @Builder.Default
-    private UUID id = UUID.randomUUID();
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(unique = true, nullable = false)
     private String nik;

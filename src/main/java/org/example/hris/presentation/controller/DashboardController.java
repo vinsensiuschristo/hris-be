@@ -98,4 +98,13 @@ public class DashboardController {
         DashboardStatsResponse stats = dashboardService.getDashboardStats(startDate, endDate, departmentId);
         return ResponseEntity.ok(stats.getTopLeaveEmployees());
     }
+
+    @GetMapping("/my-stats")
+    @Operation(summary = "Get personal dashboard stats for current employee")
+    public ResponseEntity<org.example.hris.application.dto.dashboard.MyDashboardStatsResponse> getMyStats(
+            @RequestParam UUID karyawanId
+    ) {
+        var stats = dashboardService.getMyStats(karyawanId);
+        return ResponseEntity.ok(stats);
+    }
 }

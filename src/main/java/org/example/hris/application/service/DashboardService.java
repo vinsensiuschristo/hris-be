@@ -1,6 +1,7 @@
 package org.example.hris.application.service;
 
 import org.example.hris.application.dto.dashboard.DashboardStatsResponse;
+import org.example.hris.application.dto.dashboard.MyDashboardStatsResponse;
 import org.example.hris.domain.model.*;
 import org.example.hris.domain.repository.*;
 import org.springframework.context.annotation.Lazy;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -249,5 +252,92 @@ public class DashboardService {
                 .sorted((a, b) -> b.getTotalHariCuti().compareTo(a.getTotalHariCuti()))
                 .limit(limit)
                 .toList();
+    }
+
+    /**
+     * Get dashboard stats for a specific employee (my dashboard)
+     */
+    public MyDashboardStatsResponse getMyStats(UUID karyawanId) {
+        LocalDate today = LocalDate.now();
+        LocalDate monthStart = today.withDayOfMonth(1);
+        
+        // Get employee
+        Employee employee = employeeRepository.findById(karyawanId)
+                .orElseThrow(() -> new RuntimeException("Employee not found: " + karyawanId));
+        
+        // Get attendances this month
+        List<Attendance> myAttendances = attendanceRepository.findByKaryawanId(karyawanId).stream()
+                .filter(a -> !a.getTanggal().isBefore(monthStart) && !a.getTanggal().isAfter(today))
+                .toList();
+        
+        int attendanceCount = (int) myAttendances.stream()
+                .filter(a -> "HADIR".equals(a.getStatus()) || "TERLAMBAT".equals(a.getStatus()))
+                .count();
+        int lateCount = (int) myAttendances.stream()
+                .filter(a -> "TERLAMBAT".equals(a.getStatus()))
+                .count();
+        int totalLateMenit = myAttendances.stream()
+                .filter(a -> a.getKeterlambatanMenit() != null)
+                .mapToInt(Attendance::getKeterlambatanMenit)
+                .sum();
+        
+        // Today's attendance
+        Optional<Attendance> todayAttendance = attendanceRepository.findByKaryawanIdAndTanggal(karyawanId, today);
+        String todayStatus = "BELUM_CHECKIN";
+        String todayCheckIn = null;
+        String todayCheckOut = null;
+        
+        if (todayAttendance.isPresent()) {
+            Attendance att = todayAttendance.get();
+            if (att.getJamKeluar() != null) {
+                todayStatus = "SUDAH_CHECKOUT";
+            } else {
+                todayStatus = att.getStatus();
+            }
+            if (att.getJamMasuk() != null) {
+                todayCheckIn = att.getJamMasuk().format(DateTimeFormatter.ofPattern("HH:mm"));
+            }
+            if (att.getJamKeluar() != null) {
+                todayCheckOut = att.getJamKeluar().format(DateTimeFormatter.ofPattern("HH:mm"));
+            }
+        }
+        
+        // Leave requests
+        List<LeaveRequest> myLeaveRequests = leaveRequestRepository.findAll().stream()
+                .filter(lr -> lr.getKaryawan() != null && lr.getKaryawan().getId().equals(karyawanId))
+                .toList();
+        int pendingLeave = (int) myLeaveRequests.stream()
+                .filter(lr -> lr.getStatus() != null && STATUS_MENUNGGU.equals(lr.getStatus().getNamaStatus()))
+                .count();
+        int approvedLeaveThisMonth = (int) myLeaveRequests.stream()
+                .filter(lr -> lr.getStatus() != null && STATUS_DISETUJUI.equals(lr.getStatus().getNamaStatus()))
+                .filter(lr -> !lr.getTglMulai().isBefore(monthStart) && !lr.getTglMulai().isAfter(today))
+                .count();
+        
+        // Overtime requests
+        List<OvertimeRequest> myOvertimeRequests = overtimeRequestRepository.findAll().stream()
+                .filter(or -> or.getKaryawan() != null && or.getKaryawan().getId().equals(karyawanId))
+                .toList();
+        int pendingOvertime = (int) myOvertimeRequests.stream()
+                .filter(or -> or.getStatus() != null && STATUS_MENUNGGU.equals(or.getStatus().getNamaStatus()))
+                .count();
+        int approvedOvertimeThisMonth = (int) myOvertimeRequests.stream()
+                .filter(or -> or.getStatus() != null && STATUS_DISETUJUI.equals(or.getStatus().getNamaStatus()))
+                .filter(or -> !or.getTglLembur().isBefore(monthStart) && !or.getTglLembur().isAfter(today))
+                .count();
+        
+        return MyDashboardStatsResponse.builder()
+                .attendanceThisMonth(attendanceCount)
+                .lateThisMonth(lateCount)
+                .totalLateMenit(totalLateMenit)
+                .sisaCuti(employee.getSisaCuti())
+                .todayStatus(todayStatus)
+                .todayCheckIn(todayCheckIn)
+                .todayCheckOut(todayCheckOut)
+                .pendingLeaveRequests(pendingLeave)
+                .pendingOvertimeRequests(pendingOvertime)
+                .approvedLeaveThisMonth(approvedLeaveThisMonth)
+                .approvedOvertimeThisMonth(approvedOvertimeThisMonth)
+                .build();
     }
 }

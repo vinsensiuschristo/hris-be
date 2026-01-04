@@ -76,9 +76,8 @@ public class EmployeeService {
             throw new RuntimeException("Email already exists: " + email);
         }
 
-        // Create entity directly to properly set relationships
+        // Create entity directly - let JPA handle ID generation via @GeneratedValue
         EmployeeEntity entity = EmployeeEntity.builder()
-                .id(UUID.randomUUID())
                 .nama(nama)
                 .nik(nik)
                 .email(email)

@@ -20,15 +20,16 @@ public class AttendanceService {
 
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
+    private final WorkHoursSettingsService workHoursSettingsService;
 
-    public AttendanceService(AttendanceRepository attendanceRepository, @Lazy EmployeeRepository employeeRepository) {
+    public AttendanceService(
+            AttendanceRepository attendanceRepository, 
+            @Lazy EmployeeRepository employeeRepository,
+            WorkHoursSettingsService workHoursSettingsService) {
         this.attendanceRepository = attendanceRepository;
         this.employeeRepository = employeeRepository;
+        this.workHoursSettingsService = workHoursSettingsService;
     }
-
-    // Default work start time (can be moved to configuration)
-    private static final LocalTime JAM_KERJA_MULAI = LocalTime.of(8, 0); // 08:00
-    private static final int TOLERANSI_MENIT = 15; // 15 minutes grace period
 
     public static final String STATUS_HADIR = "HADIR";
     public static final String STATUS_TERLAMBAT = "TERLAMBAT";
@@ -79,13 +80,15 @@ public class AttendanceService {
             throw new RuntimeException("Karyawan sudah melakukan check-in hari ini");
         }
 
-        // Calculate lateness
+        // Calculate lateness using dynamic settings
         int keterlambatanMenit = 0;
         String status = STATUS_HADIR;
-        LocalTime batasWaktu = JAM_KERJA_MULAI.plusMinutes(TOLERANSI_MENIT);
+        LocalTime jamKerjaMulai = workHoursSettingsService.getJamMasuk();
+        int toleransiMenit = workHoursSettingsService.getToleransiMenit();
+        LocalTime batasWaktu = jamKerjaMulai.plusMinutes(toleransiMenit);
 
         if (actualJamMasuk.isAfter(batasWaktu)) {
-            keterlambatanMenit = (int) ChronoUnit.MINUTES.between(JAM_KERJA_MULAI, actualJamMasuk);
+            keterlambatanMenit = (int) ChronoUnit.MINUTES.between(jamKerjaMulai, actualJamMasuk);
             status = STATUS_TERLAMBAT;
         }
 
